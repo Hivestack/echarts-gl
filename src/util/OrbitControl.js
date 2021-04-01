@@ -170,8 +170,8 @@ var OrbitControl = Base.extend(function () {
     };
 }, function () {
     // Each OrbitControl has it's own handler
-    ['_mouseDownHandler', '_mouseWheelHandler', '_mouseMoveHandler', '_mouseUpHandler',
-    '_pinchHandler', '_contextMenuHandler', '_update'].forEach(function (hdlName) {
+    ['_mouseDownHandler', '_mouseMoveHandler', '_mouseUpHandler',
+    '_contextMenuHandler', '_update'].forEach(function (hdlName) {
         this[hdlName] = this[hdlName].bind(this);
     }, this);
 }, {
@@ -185,8 +185,6 @@ var OrbitControl = Base.extend(function () {
         if (zr) {
             zr.on('mousedown', this._mouseDownHandler);
             zr.on('globalout', this._mouseUpHandler);
-            zr.on('mousewheel', this._mouseWheelHandler);
-            zr.on('pinch', this._pinchHandler);
 
             zr.animation.on('frame', this._update);
 
@@ -205,8 +203,6 @@ var OrbitControl = Base.extend(function () {
             zr.off('mousedown', this._mouseDownHandler);
             zr.off('mousemove', this._mouseMoveHandler);
             zr.off('mouseup', this._mouseUpHandler);
-            zr.off('mousewheel', this._mouseWheelHandler);
-            zr.off('pinch', this._pinchHandler);
             zr.off('globalout', this._mouseUpHandler);
             zr.dom.removeEventListener('contextmenu', this._contextMenuHandler);
 
@@ -730,59 +726,6 @@ var OrbitControl = Base.extend(function () {
 
         this._mouseX = e.offsetX;
         this._mouseY = e.offsetY;
-
-        e.event.preventDefault();
-    },
-
-    _mouseWheelHandler: function (e) {
-        if (this._isAnimating()) {
-            return;
-        }
-        var delta = e.event.wheelDelta // Webkit
-                || -e.event.detail; // Firefox
-        this._zoomHandler(e, delta);
-    },
-
-    _pinchHandler: function (e) {
-        if (this._isAnimating()) {
-            return;
-        }
-        this._zoomHandler(e, e.pinchScale > 1 ? 1 : -1);
-        // Not rotate when pinch
-        this._mode = '';
-    },
-
-    _zoomHandler: function (e, delta) {
-        if (delta === 0) {
-            return;
-        }
-
-        var x = e.offsetX;
-        var y = e.offsetY;
-        if (this.viewGL && !this.viewGL.containPoint(x, y)) {
-            return;
-        }
-
-        var speed;
-        if (this._projection === 'perspective') {
-            speed = Math.max(Math.max(Math.min(
-                this._distance - this.minDistance,
-                this.maxDistance - this._distance
-            )) / 20, 0.5);
-        }
-        else {
-            speed = Math.max(Math.max(Math.min(
-                this._orthoSize - this.minOrthographicSize,
-                this.maxOrthographicSize - this._orthoSize
-            )) / 20, 0.5);
-        }
-        this._zoomSpeed = (delta > 0 ? -1 : 1) * speed * this.zoomSensitivity;
-
-        this._rotating = false;
-
-        if (this.autoRotate && this._mode === 'rotate') {
-            this._startCountingStill();
-        }
 
         e.event.preventDefault();
     },
