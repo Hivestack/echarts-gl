@@ -53654,7 +53654,6 @@ Mapbox3DLayer.prototype.refresh = function () {
 };
 
 var EVENTS = ['mousedown', 'mouseup', 'click', 'dblclick', 'mousemove',
-    'mousewheel', 'wheel',
     'touchstart', 'touchend', 'touchmove', 'touchcancel'
 ];
 Mapbox3DLayer.prototype._initEvents = function () {
@@ -53690,6 +53689,7 @@ Mapbox3DLayer.prototype.dispose = function () {
 };
 
 /* harmony default export */ const mapbox3D_Mapbox3DLayer = (Mapbox3DLayer);
+
 ;// CONCATENATED MODULE: ./src/util/shader/displayShadow.glsl.js
 /* harmony default export */ const displayShadow_glsl = ("\n@export ecgl.displayShadow.vertex\n\n@import ecgl.common.transformUniforms\n\n@import ecgl.common.uv.header\n\n@import ecgl.common.attributes\n\nvarying vec3 v_WorldPosition;\n\nvarying vec3 v_Normal;\n\nvoid main()\n{\n @import ecgl.common.uv.main\n v_Normal = normalize((worldInverseTranspose * vec4(normal, 0.0)).xyz);\n\n v_WorldPosition = (world * vec4(position, 1.0)).xyz;\n gl_Position = worldViewProjection * vec4(position, 1.0);\n}\n\n@end\n\n\n@export ecgl.displayShadow.fragment\n\n@import ecgl.common.uv.fragmentHeader\n\nvarying vec3 v_Normal;\nvarying vec3 v_WorldPosition;\n\nuniform float roughness: 0.2;\n\n#ifdef DIRECTIONAL_LIGHT_COUNT\n@import clay.header.directional_light\n#endif\n\n@import ecgl.common.ssaoMap.header\n\n@import clay.plugin.compute_shadow_map\n\nvoid main()\n{\n float shadow = 1.0;\n\n @import ecgl.common.ssaoMap.main\n\n#if defined(DIRECTIONAL_LIGHT_COUNT) && defined(DIRECTIONAL_LIGHT_SHADOWMAP_COUNT)\n float shadowContribsDir[DIRECTIONAL_LIGHT_COUNT];\n if(shadowEnabled)\n {\n computeShadowOfDirectionalLights(v_WorldPosition, shadowContribsDir);\n }\n for (int i = 0; i < DIRECTIONAL_LIGHT_COUNT; i++) {\n shadow = min(shadow, shadowContribsDir[i] * 0.5 + 0.5);\n }\n#endif\n\n shadow *= 0.5 + ao * 0.5;\n shadow = clamp(shadow, 0.0, 1.0);\n\n gl_FragColor = vec4(vec3(0.0), 1.0 - shadow);\n}\n\n@end");
 
@@ -54315,7 +54315,6 @@ Maptalks3DLayer.prototype.refresh = function () {
 };
 
 var Maptalks3DLayer_EVENTS = ['mousedown', 'mouseup', 'click', 'dblclick', 'mousemove',
-    'mousewheel', 'DOMMouseScroll',
     'touchstart', 'touchend', 'touchmove', 'touchcancel'
 ];
 Maptalks3DLayer.prototype._initEvents = function () {
@@ -54335,13 +54334,7 @@ Maptalks3DLayer.prototype._initEvents = function () {
             }
             obj.bubbles = false;
             var newE = new e.constructor(e.type, obj);
-            if (eName === 'mousewheel' || eName === 'DOMMouseScroll') {
-                // maptalks listens events to different elements?
-                maptalksRoot.dispatchEvent(newE);
-            }
-            else {
-                maptalksRoot.firstElementChild.dispatchEvent(newE);
-            }
+            maptalksRoot.firstElementChild.dispatchEvent(newE);
         };
         this.zr.dom.addEventListener(eName, this._handlers[eName]);
     }, this);
@@ -62663,7 +62656,6 @@ var Roam2DControl = core_Base.extend(function () {
 }, function () {
     // Each Roam2DControl has it's own handler
     this._mouseDownHandler = this._mouseDownHandler.bind(this);
-    this._mouseWheelHandler = this._mouseWheelHandler.bind(this);
     this._mouseMoveHandler = this._mouseMoveHandler.bind(this);
     this._mouseUpHandler = this._mouseUpHandler.bind(this);
     this._update = this._update.bind(this);
@@ -62673,7 +62665,6 @@ var Roam2DControl = core_Base.extend(function () {
         var zr = this.zr;
 
         zr.on('mousedown', this._mouseDownHandler);
-        zr.on('mousewheel', this._mouseWheelHandler);
         zr.on('globalout', this._mouseUpHandler);
 
         zr.animation.on('frame', this._update);
@@ -62779,46 +62770,12 @@ var Roam2DControl = core_Base.extend(function () {
         this.zr.off('mouseup', this._mouseUpHandler);
     },
 
-    _mouseWheelHandler: function (e) {
-        e = e.event;
-        var delta = e.wheelDelta // Webkit
-                || -e.detail; // Firefox
-        if (delta === 0) {
-            return;
-        }
-
-        var x = e.offsetX;
-        var y = e.offsetY;
-        if (this.viewGL && !this.viewGL.containPoint(x, y)) {
-            return;
-        }
-
-        var zoomScale = delta > 0 ? 1.1 : 0.9;
-        var newZoom = Math.max(Math.min(
-            this._zoom * zoomScale, this.maxZoom
-        ), this.minZoom);
-        zoomScale = newZoom / this._zoom;
-
-        var pos = this._convertPos(x, y);
-
-        var fixX = (pos.x - this._dx) * (zoomScale - 1);
-        var fixY = (pos.y - this._dy) * (zoomScale - 1);
-
-        this._dx -= fixX;
-        this._dy -= fixY;
-
-        this._zoom = newZoom;
-
-        this._needsUpdate = true;
-    },
-
     dispose: function () {
 
         var zr = this.zr;
         zr.off('mousedown', this._mouseDownHandler);
         zr.off('mousemove', this._mouseMoveHandler);
         zr.off('mouseup', this._mouseUpHandler);
-        zr.off('mousewheel', this._mouseWheelHandler);
         zr.off('globalout', this._mouseUpHandler);
 
         zr.animation.off('frame', this._update);
@@ -62826,6 +62783,7 @@ var Roam2DControl = core_Base.extend(function () {
 });
 
 /* harmony default export */ const util_Roam2DControl = (Roam2DControl);
+
 ;// CONCATENATED MODULE: ./src/util/shader/lines2D.glsl.js
 /* harmony default export */ const lines2D_glsl = ("@export ecgl.lines2D.vertex\n\nuniform mat4 worldViewProjection : WORLDVIEWPROJECTION;\n\nattribute vec2 position: POSITION;\nattribute vec4 a_Color : COLOR;\nvarying vec4 v_Color;\n\n#ifdef POSITIONTEXTURE_ENABLED\nuniform sampler2D positionTexture;\n#endif\n\nvoid main()\n{\n gl_Position = worldViewProjection * vec4(position, -10.0, 1.0);\n\n v_Color = a_Color;\n}\n\n@end\n\n@export ecgl.lines2D.fragment\n\nuniform vec4 color : [1.0, 1.0, 1.0, 1.0];\n\nvarying vec4 v_Color;\n\nvoid main()\n{\n gl_FragColor = color * v_Color;\n}\n@end\n\n\n@export ecgl.meshLines2D.vertex\n\nattribute vec2 position: POSITION;\nattribute vec2 normal;\nattribute float offset;\nattribute vec4 a_Color : COLOR;\n\nuniform mat4 worldViewProjection : WORLDVIEWPROJECTION;\nuniform vec4 viewport : VIEWPORT;\n\nvarying vec4 v_Color;\nvarying float v_Miter;\n\nvoid main()\n{\n vec4 p2 = worldViewProjection * vec4(position + normal, -10.0, 1.0);\n gl_Position = worldViewProjection * vec4(position, -10.0, 1.0);\n\n p2.xy /= p2.w;\n gl_Position.xy /= gl_Position.w;\n\n vec2 N = normalize(p2.xy - gl_Position.xy);\n gl_Position.xy += N * offset / viewport.zw * 2.0;\n\n gl_Position.xy *= gl_Position.w;\n\n v_Color = a_Color;\n}\n@end\n\n\n@export ecgl.meshLines2D.fragment\n\nuniform vec4 color : [1.0, 1.0, 1.0, 1.0];\n\nvarying vec4 v_Color;\nvarying float v_Miter;\n\nvoid main()\n{\n gl_FragColor = color * v_Color;\n}\n\n@end");
 

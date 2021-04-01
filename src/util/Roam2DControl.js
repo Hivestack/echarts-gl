@@ -32,7 +32,6 @@ var Roam2DControl = Base.extend(function () {
 }, function () {
     // Each Roam2DControl has it's own handler
     this._mouseDownHandler = this._mouseDownHandler.bind(this);
-    this._mouseWheelHandler = this._mouseWheelHandler.bind(this);
     this._mouseMoveHandler = this._mouseMoveHandler.bind(this);
     this._mouseUpHandler = this._mouseUpHandler.bind(this);
     this._update = this._update.bind(this);
@@ -42,7 +41,6 @@ var Roam2DControl = Base.extend(function () {
         var zr = this.zr;
 
         zr.on('mousedown', this._mouseDownHandler);
-        zr.on('mousewheel', this._mouseWheelHandler);
         zr.on('globalout', this._mouseUpHandler);
 
         zr.animation.on('frame', this._update);
@@ -148,46 +146,12 @@ var Roam2DControl = Base.extend(function () {
         this.zr.off('mouseup', this._mouseUpHandler);
     },
 
-    _mouseWheelHandler: function (e) {
-        e = e.event;
-        var delta = e.wheelDelta // Webkit
-                || -e.detail; // Firefox
-        if (delta === 0) {
-            return;
-        }
-
-        var x = e.offsetX;
-        var y = e.offsetY;
-        if (this.viewGL && !this.viewGL.containPoint(x, y)) {
-            return;
-        }
-
-        var zoomScale = delta > 0 ? 1.1 : 0.9;
-        var newZoom = Math.max(Math.min(
-            this._zoom * zoomScale, this.maxZoom
-        ), this.minZoom);
-        zoomScale = newZoom / this._zoom;
-
-        var pos = this._convertPos(x, y);
-
-        var fixX = (pos.x - this._dx) * (zoomScale - 1);
-        var fixY = (pos.y - this._dy) * (zoomScale - 1);
-
-        this._dx -= fixX;
-        this._dy -= fixY;
-
-        this._zoom = newZoom;
-
-        this._needsUpdate = true;
-    },
-
     dispose: function () {
 
         var zr = this.zr;
         zr.off('mousedown', this._mouseDownHandler);
         zr.off('mousemove', this._mouseMoveHandler);
         zr.off('mouseup', this._mouseUpHandler);
-        zr.off('mousewheel', this._mouseWheelHandler);
         zr.off('globalout', this._mouseUpHandler);
 
         zr.animation.off('frame', this._update);

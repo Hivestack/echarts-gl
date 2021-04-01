@@ -39,7 +39,6 @@ Mapbox3DLayer.prototype.refresh = function () {
 };
 
 var EVENTS = ['mousedown', 'mouseup', 'click', 'dblclick', 'mousemove',
-    'mousewheel', 'wheel',
     'touchstart', 'touchend', 'touchmove', 'touchcancel'
 ];
 Mapbox3DLayer.prototype._initEvents = function () {
