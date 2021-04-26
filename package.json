@@ -18,7 +18,7 @@
     "zrender": "^5.0.3"
   },
   "peerDependencies": {
-    "echarts": "^5.0.1"
+    "echarts": "5.1.0"
   },
   "main": "dist/echarts-gl.js",
   "module": "index.js",
